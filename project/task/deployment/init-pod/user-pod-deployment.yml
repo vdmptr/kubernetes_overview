@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-pod-deployment
+  labels:
+    app: user-pod-deployment
+    env: dev
+  namespace: vdmtest
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: user-pod-label
+      env: dev
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      name: user-pod
+      labels:
+        app: user-pod-label
+        env: dev
+    spec:
+      containers:
+        - image: user-server:v3.0.0
+          name: user-container
+          ports:
+            - containerPort: 8081
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8081
+            initialDelaySeconds: 5
+            periodSeconds: 15
+            failureThreshold: 1
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8081
+            initialDelaySeconds: 5
+            periodSeconds: 3
+          env:
+            - name: USER_SERVER_DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: user-db-secret
+                  key: user_server_db_user
+            - name: USER_SERVER_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: user-db-secret
+                  key: user_server_db_password
+            - name: USER_SERVER_DB_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: vdm-user-config-map
+                  key: user_server_db_host
+            - name: USER_SERVER_DB_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: vdm-user-config-map
+                  key: user_server_db_port
+            - name: USER_SERVER_DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: vdm-user-config-map
+                  key: user_server_db_name
+
+

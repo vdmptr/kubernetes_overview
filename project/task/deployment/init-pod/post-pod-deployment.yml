@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: post-pod-deployment
+  labels:
+    app: post-pod-deployment
+    env: dev
+  namespace: vdmtest
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: post-pod-label
+      env: dev
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      name: post-pod
+      labels:
+        app: post-pod-label
+        env: dev
+    spec:
+      containers:
+        - image: post-server:v3.0.0
+          name: post-container
+          ports:
+            - containerPort: 8085
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8085
+            initialDelaySeconds: 5
+            periodSeconds: 15
+            failureThreshold: 1
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8085
+            initialDelaySeconds: 5
+            periodSeconds: 3
+          env:
+            - name: POST_SERVER_DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: post-secret
+                  key: post_server_db_user
+            - name: POST_SERVER_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: post-secret
+                  key: post_server_db_password
+            - name: POST_SERVER_DB_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: vdm-post-config-map
+                  key: post_server_db_host
+            - name: POST_SERVER_DB_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: vdm-post-config-map
+                  key: port_server_db_port
+            - name: POST_SERVER_DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: vdm-post-config-map
+                  key: post_server_db_name
+            - name: POST_SERVER_USER_SERVER_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: vdm-post-config-map
+                  key: post_server_user_server_url
+
+

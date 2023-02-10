@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: post-postgres-deployment
+  namespace: vdmtest
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: post-postgres
+  template:
+    metadata:
+      labels:
+        app: post-postgres
+    spec:
+      containers:
+        - name: post-postgres-container
+          image: postgres
+          imagePullPolicy: "IfNotPresent"
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: post-secret
+                  key: post_server_db_user
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: post-secret
+                  key: post_server_db_password
+            - name: PGDATA
+              value: "/data/postgres"
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: vdm-post-config-map
+                  key: post_server_db_name
+          volumeMounts:
+                  - name: init-posts-db
+                    readOnly: true
+                    mountPath: "/docker-entrypoint-initdb.d"
+      volumes:
+            - name: init-posts-db
+              configMap:
+                name: vdm-post-config-map
+                items:
+                  - key: init.posts.db
+                    path: "post_database.sql"
+

@@ -26,8 +26,13 @@ spec:
             periodSeconds: 15
             failureThreshold: 1
           readinessProbe:
-            tcpSocket:
-              port: 5432
+            exec:
+              command:
+                - pg_isready
+                - -h
+                - $(POSTGRES_HOST)
+                - -p
+                - $(POSTGRES_PORT)
             initialDelaySeconds: 5
             periodSeconds: 3
           env:
@@ -48,10 +53,22 @@ spec:
                 configMapKeyRef:
                   name: vdm-post-config-map
                   key: post_server_db_name
+            - name: POSTGRES_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: vdm-post-config-map
+                  key: post_server_db_host
+            - name: POSTGRES_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: vdm-post-config-map
+                  key: port_server_db_port
           volumeMounts:
                   - name: init-posts-db
                     readOnly: true
                     mountPath: "/docker-entrypoint-initdb.d"
+                  - name: init-db
+                    mountPath: "/data/postgres"
       volumes:
             - name: init-posts-db
               configMap:
@@ -59,4 +76,7 @@ spec:
                 items:
                   - key: init.posts.db
                     path: "post_database.sql"
+            - name: init-db
+              persistentVolumeClaim:
+                claimName: post-volume-claim
 

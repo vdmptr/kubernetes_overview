@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: vdm-user-config-map
-  namespace: vdmtest
+  namespace: {{.Values.namespace}}
 data:
   user_server_db_host: "user-postgres-service"
   user_server_db_port: "5432"

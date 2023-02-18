@@ -1,0 +1,17 @@
+
+namespace: vdm-dev
+
+version: 3.0.0
+
+pod:
+  user:
+    replicaCount: 2
+  post:
+    replicaCount: 2
+database:
+  user:
+    replicaCount: 1
+  post:
+    replicaCount: 1
+
+

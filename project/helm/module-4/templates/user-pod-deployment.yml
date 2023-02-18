@@ -5,9 +5,9 @@ metadata:
   labels:
     app: user-pod-deployment
     env: dev
-  namespace: vdmtest
+  namespace: {{.Values.namespace}}
 spec:
-  replicas: 2
+  replicas: {{.Values.pod.user.replicaCount}}
   selector:
     matchLabels:
       app: user-pod-label

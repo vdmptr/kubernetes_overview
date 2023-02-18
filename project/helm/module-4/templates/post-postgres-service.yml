@@ -1,12 +1,12 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: post-service
-  namespace: vdmtest
+  name: post-postgres-service
+  namespace: {{.Values.namespace}}
 spec:
   selector:
-    app: post-pod-label
+    app: post-postgres
   ports:
     - protocol: TCP
-      port: 8085
+      port: 5432
       targetPort: 5432

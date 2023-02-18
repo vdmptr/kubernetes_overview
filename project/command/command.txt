@@ -1,0 +1,76 @@
+kubectl -n vdmtest get pods user-db-secret
+
+kubectl -n vdmtest logs post-pod-deployment-65b4ffc7d6-42lh6
+
+ kubectl apply -f ./ --recursive
+
+ kubectl -n vdmtest describe po user-pod-deployment-b86778d8-62bmd
+
+ kubectl logs post-pod-deployment-5d85bc9bb-7xzj2 -n vdmtest
+
+ kubectl describe pod post-pod-deployment-5d85bc9bb-7zj2 -n vdmtest
+
+ kubectl get pods -n vdmtest
+
+ kubectl apply -f ./init-pod/
+
+ kubectl -n vdm-test describe po post-pod-deployment-c96f57c44-xzzqx | grep Secret
+
+kubectl -n vdm-test get pods
+
+kubectl -n vdm-test get secrets
+
+kubectl port-forward kubia-manual 8888:8080
+
+ kubectl delete pv user-local-volume  --grace-period=0 --force
+
+
+
+//  rs  - replicaSet
+ kubectl get rs -n vdmtest
+
+//   |  deployment      | rs       | pod |
+//   user-pod-deployment-676db5c445-zhg6n
+
+kubectl rollout history deployment/user-pod-deployment --revision=0 -n vdmtest
+
+kubectl rollout undo deployment/user-pod-deployment --to-revision=2 -n vdmtest
+
+ kubectl rollout undo deployment/user-pod-deployment -n vdmtest
+
+ kubectl get deployment user-pod-deployment -n vdmtest
+
+kubectl describe deployment user-pod-deployment -n vdmtest
+
+kubectl set image deployment.v1.apps/user-pod-deployment user-container=user-server-api:v2.0.0 -n vdmtest
+
+kubectl set image deployment/user-pod-deployment user-container=user-server-api:v1.0.1 -n vdmtest
+
+///////////////////////  build image ////////
+
+docker build -t post-server-api:v2.0.0 .
+
+                ////// create new image name with new tag in local repository  ////
+docker tag post-server-api:v2.0.1 epamvadzimhlushchanka/post-server-api:v2.0.1
+
+// epamvadzimhlushchanka/post-server-api    v2.0.1     69fec6943f0b
+// post-server-api                          v2.0.1     69fec6943f0b
+
+                //// push image with new name and new tag in remove repository ////
+docker push epamvadzimhlushchanka/post-server-api:v2.0.1
+
+////////////////////////////  HELM ///////////////////////////
+
+helm install module-4 ./module-4
+
+helm upgrade module-4 ./module-4
+
+helm uninstall module-4
+
+helm rollback module-4 1
+
+helm ls --all
+
+helm template ./module-4
+
+

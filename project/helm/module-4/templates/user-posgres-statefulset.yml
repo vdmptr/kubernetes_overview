@@ -1,0 +1,93 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: user-postgres-stateful-set
+  namespace: {{.Values.namespace}}
+spec:
+  replicas: {{.Values.database.user.replicaCount}}
+  selector:
+    matchLabels:
+      app: user-postgres
+  serviceName: user-postgres-service
+  minReadySeconds: 3
+  template:
+    metadata:
+      labels:
+        app: user-postgres
+    spec:
+      containers:
+        - name: user-postgres-container
+          image: postgres
+          imagePullPolicy: "IfNotPresent"
+          ports:
+            - containerPort: 5432
+          livenessProbe:
+            tcpSocket:
+              port: 5432
+            initialDelaySeconds: 5
+            periodSeconds: 15
+            failureThreshold: 1
+          readinessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -h
+                - $(POSTGRES_HOST)
+                - -p
+                - $(POSTGRES_PORT)
+            initialDelaySeconds: 5
+            periodSeconds: 3
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: user-db-secret
+                  key: user_server_db_user
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: user-db-secret
+                  key: user_server_db_password
+            - name: PGDATA
+              value: "/data/postgres"
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: vdm-user-config-map
+                  key: user_server_db_name
+            - name: POSTGRES_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: vdm-user-config-map
+                  key: user_server_db_host
+            - name: POSTGRES_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: vdm-user-config-map
+                  key: user_server_db_port
+          volumeMounts:
+            - name: init-users-db
+              readOnly: true
+              mountPath: "/docker-entrypoint-initdb.d"
+            - name: user-volume-claim
+              mountPath: "/data/postgres"
+      volumes:
+        - name: init-users-db
+          configMap:
+            name: vdm-user-config-map
+            items:
+              - key: init.users.db
+                path: "user_database.sql"
+  volumeClaimTemplates:
+    - metadata:
+        name: user-volume-claim
+        namespace: vdmtest
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        storageClassName: "{{.Values.namespace}}-user-local-volume-class"
+        resources:
+          requests:
+            storage: 50Mi
+
+
